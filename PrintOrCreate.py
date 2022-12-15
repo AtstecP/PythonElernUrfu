@@ -589,7 +589,7 @@ def main():
             stat.salaryStat(name_vacancy)
         else:
             print('IllegalArgument')
-
-
+##HOW I CAN MAKE IT
+##????
 if __name__ == "__main__":
     main()
