@@ -8,10 +8,10 @@ import re
 import numpy as np
 import openpyxl
 import matplotlib.pyplot as plt
-
+import pdfkit
+import doctest
 from jinja2 import Environment, FileSystemLoader
 from openpyxl.styles import Font, Side, Border
-import pdfkit
 from prettytable import PrettyTable, ALL
 
 dic_transl = {
@@ -69,9 +69,12 @@ class DataSet:
     Atribyties:
         file_name (str): Имя файла для считывания
         vacancies_objects (list of Vacancy): лист вакансий
+
+    >>> type(DataSet('F:/Makarov/small.csv')).__name__
+    'DataSet'
     """
 
-    def __init__(self, file_name, vacancies_objects):
+    def __init__(self, file_name):
         """
         Иницилизирует объект DataSet
         Args:
@@ -79,7 +82,7 @@ class DataSet:
         vacancies_objects (list of Vacancy): лист вакансий
         """
         self.file_name = file_name
-        self.vacancies_objects = vacancies_objects
+        self.vacancies_objects = self.parser_csv(file_name)
 
     def setvacancies(self, vacancies_objects):
         """
@@ -232,7 +235,6 @@ class Vacancy:
             area_name(str): информация о месте5 находждения вакансии
             published_at(datetime): неотформатированнная дата (используятся сравнения)
             published_at_fixed(str): отфаорматированная дата для вывода на экран
-
         """
         self.name = name
         self.description = description
@@ -628,6 +630,9 @@ class Report:
         Иницилизация объекта класс Report
         Args:
            name(str): имя вакансии
+
+        >>> type(Report('Програмист')).__name__
+        'Report'
         """
         self.name = name
 
@@ -797,11 +802,13 @@ def main():
     Выполняется при запуске программы
     Ведет диалог с пользователем и вызывает методы для работы с данными
     """
+    doctest.testmod()
+    return
     # name = input('Введите название файла: ')
     name = "vacancies_by_year.csv"
     # name_vacancy = input('Введите название профессии: ')
     name_vacancy = 'Программист'
-    vacanciesDataSet = DataSet(name, DataSet.parser_csv(name))
+    vacanciesDataSet = DataSet(name)
     if os.stat(name).st_size == 0:
         print("Пустой файл")
     elif len(vacanciesDataSet.getvacancies()) == 0:
