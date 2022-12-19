@@ -6,7 +6,6 @@ import PrintOrCreate
 def load_tests(loader, tests, ignore):
     tests.addTests(doctest.DocTestSuite(PrintOrCreate))
     return tests
-\
 
 
 class Tests(TestCase):
