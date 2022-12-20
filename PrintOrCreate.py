@@ -144,7 +144,7 @@ class DataSet:
         return data
 
     @staticmethod
-    def format_time(row):
+    def format_time(date_str):
         """
         Переводит вермя из строки в DateTime
         Args:
@@ -152,24 +152,24 @@ class DataSet:
         Returns:
             datetime: время в вормате DateTime
         """
-        return datetime.datetime.strptime(row['published_at'], '%Y-%m-%dT%H:%M:%S%z')
+        return datetime.datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S%z')
 
     @staticmethod
-    # def format_time1(row):
-    #     return datetime.datetime(int(row['published_at'][:4]), int(row['published_at'][5:7]),
-    #                              int(row['published_at'][8:10]),
-    #                              int(row['published_at'][11:13]), int(row['published_at'][14:16]),
-    #                              int(row['published_at'][17:19]), tzinfo=datetime.timezone(
-    #             datetime.timedelta(seconds=int(row['published_at'][21:]) * 36)))
-    #
-    # # 2022-07-05T18:28:20+0300
-    # @staticmethod
-    # def format_time2(row):
-    #     return dateutil.parser.isoparse(row['published_at'])
-    #
-    # @staticmethod
-    # def format_time3(row):
-    #     return ciso8601.parse_datetime(row['published_at'])
+    def format_time1(date_str):
+        return datetime.datetime(int(date_str[:4]), int(date_str[5:7]),
+                                 int(date_str[8:10]),
+                                 int(date_str[11:13]), int(date_str[14:16]),
+                                 int(date_str[17:19]), tzinfo=datetime.timezone(
+                datetime.timedelta(seconds=int(date_str[21:]) * 36)))
+
+
+    @staticmethod
+    def format_time2(date_str):
+        return dateutil.parser.isoparse(date_str)
+
+    @staticmethod
+    def format_time3(date_str):
+        return ciso8601.parse_datetime(date_str)
 
     @staticmethod
     def formatter(row):
@@ -198,7 +198,7 @@ class DataSet:
                                     row['salary_currency'], math.floor(
                 (int(row['salary_from'].replace('.0', '')) + int(row['salary_to'].replace('.0', ''))) / 2))
         dict_new['area_name'] = row['area_name']
-        dict_new['published_at'] = DataSet.format_time3(row)
+        dict_new['published_at'] = DataSet.format_time(row['published_at'])
         return dict_new
 
     @staticmethod
