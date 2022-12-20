@@ -2,3 +2,4 @@
 *.idea
 venv/
 Spilt_csv/
+__pycache__/
