@@ -143,24 +143,8 @@ class DataSet:
                 counter = 0
         return data
 
-    # @staticmethod
-    # def format_time(row):
-    #     return datetime.datetime.strptime(row['published_at'], '%Y-%m-%dT%H:%M:%S+%f')
-    #
-    # @staticmethod
-    # def format_time1(row):
-    #     return datetime.datetime(int(row['published_at'][:4]), int(row['published_at'][5:7]),
-    #                              int(row['published_at'][8:10]),
-    #                              int(row['published_at'][11:13]), int(row['published_at'][14:16]),
-    #                              int(row['published_at'][17:19]),int(row['published_at'][20:])*100)
-    #
-    # # 2022-07-05T18:28:20+0300
-    # @staticmethod
-    # def format_time2(row):
-    #     return dateutil.parser.isoparse(row['published_at'].replace('+', '.'))
-
     @staticmethod
-    def format_time3(row):
+    def format_time(row):
         """
         Переводит вермя из строки в DateTime
         Args:
@@ -168,7 +152,24 @@ class DataSet:
         Returns:
             datetime: время в вормате DateTime
         """
-        return ciso8601.parse_datetime(row['published_at'].replace('+', '.'))
+        return datetime.datetime.strptime(row['published_at'], '%Y-%m-%dT%H:%M:%S%z')
+
+    @staticmethod
+    # def format_time1(row):
+    #     return datetime.datetime(int(row['published_at'][:4]), int(row['published_at'][5:7]),
+    #                              int(row['published_at'][8:10]),
+    #                              int(row['published_at'][11:13]), int(row['published_at'][14:16]),
+    #                              int(row['published_at'][17:19]), tzinfo=datetime.timezone(
+    #             datetime.timedelta(seconds=int(row['published_at'][21:]) * 36)))
+    #
+    # # 2022-07-05T18:28:20+0300
+    # @staticmethod
+    # def format_time2(row):
+    #     return dateutil.parser.isoparse(row['published_at'])
+    #
+    # @staticmethod
+    # def format_time3(row):
+    #     return ciso8601.parse_datetime(row['published_at'])
 
     @staticmethod
     def formatter(row):
