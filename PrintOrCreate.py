@@ -5,6 +5,9 @@ import io
 import math
 import os
 import re
+
+import ciso8601 as ciso8601
+import dateutil
 import numpy as np
 import openpyxl
 import matplotlib.pyplot as plt
@@ -28,8 +31,7 @@ dic_transl = {
     'salary_gross': 'Оклад указан до вычета налогов',
     'salary_currency': 'Идентификатор валюты оклада',
     'area_name': 'Название региона',
-    'published_at': 'Дата публикации вакансии(старый формат)',
-    'published_at_fixed': 'Дата публикации вакансии',
+    'published_at': 'Дата публикации вакансии',
     '№': '№',
     'noExperience': 'Нет опыта',
     'between1And3': 'От 1 года до 3 лет',
@@ -125,7 +127,7 @@ class DataSet:
                     inf = DataSet.clear_row_csv(row, heading)
                     for key in ['name', 'description', 'key_skills', 'experience_id', 'premium', 'employer_name',
                                 'salary', 'area_name',
-                                'published_at', 'published_at_fixed']:
+                                'published_at']:
                         if not inf.__contains__(key):
                             inf[key] = None
                     data.append(Vacancy(inf['name'],
@@ -136,11 +138,37 @@ class DataSet:
                                         inf['employer_name'],
                                         inf['salary'],
                                         inf['area_name'],
-                                        inf['published_at'],
-                                        inf['published_at_fixed']))
+                                        inf['published_at']))
                 flag = True
                 counter = 0
         return data
+
+    # @staticmethod
+    # def format_time(row):
+    #     return datetime.datetime.strptime(row['published_at'], '%Y-%m-%dT%H:%M:%S+%f')
+    #
+    # @staticmethod
+    # def format_time1(row):
+    #     return datetime.datetime(int(row['published_at'][:4]), int(row['published_at'][5:7]),
+    #                              int(row['published_at'][8:10]),
+    #                              int(row['published_at'][11:13]), int(row['published_at'][14:16]),
+    #                              int(row['published_at'][17:19]),int(row['published_at'][20:])*100)
+    #
+    # # 2022-07-05T18:28:20+0300
+    # @staticmethod
+    # def format_time2(row):
+    #     return dateutil.parser.isoparse(row['published_at'].replace('+', '.'))
+
+    @staticmethod
+    def format_time3(row):
+        """
+        Переводит вермя из строки в DateTime
+        Args:
+            row(dict): словарь у которого есть ключ 'published_at'
+        Returns:
+            datetime: время в вормате DateTime
+        """
+        return ciso8601.parse_datetime(row['published_at'].replace('+', '.'))
 
     @staticmethod
     def formatter(row):
@@ -148,7 +176,7 @@ class DataSet:
         Получает данные о вакансии и переводит их в нужный формат
         Args:
             row(dict): словарь с данными о вакансии
-        return
+        Returns:
             dict: изменнеый с данными о вакансии
         """
         dict_new = {}
@@ -169,10 +197,7 @@ class DataSet:
                                     row['salary_currency'], math.floor(
                 (int(row['salary_from'].replace('.0', '')) + int(row['salary_to'].replace('.0', ''))) / 2))
         dict_new['area_name'] = row['area_name']
-        dict_new['published_at'] = datetime.datetime.strptime(row['published_at'].replace('T', ' '),
-                                                              '%Y-%m-%d %H:%M:%S+%f')
-        dict_new[
-            'published_at_fixed'] = f"{row['published_at'][8:10]}.{row['published_at'][5:7]}.{row['published_at'][:4]}"
+        dict_new['published_at'] = DataSet.format_time3(row)
         return dict_new
 
     @staticmethod
@@ -215,13 +240,12 @@ class Vacancy:
         salary (Salary): информация о зарплатах
         area_name(str): информация о месте5 находждения вакансии
         published_at(datetime): неотформатированнная дата (используятся сравнения)
-        published_at_fixed(str): отфаорматированная дата для вывода на экран
 
 
     """
 
     def __init__(self, name, description, key_skills, experience_id, premium, employer_name, salary, area_name,
-                 published_at, published_at_fixed):
+                 published_at):
         """
         Иницилизация объекта Vacancy
         Args:
@@ -234,7 +258,6 @@ class Vacancy:
             salary (Salary): информация о зарплатах
             area_name(str): информация о месте5 находждения вакансии
             published_at(datetime): неотформатированнная дата (используятся сравнения)
-            published_at_fixed(str): отфаорматированная дата для вывода на экран
         """
         self.name = name
         self.description = description
@@ -245,7 +268,6 @@ class Vacancy:
         self.salary = salary
         self.area_name = area_name
         self.published_at = published_at
-        self.published_at_fixed = published_at_fixed
 
     def getdata(self):
         """
@@ -255,7 +277,7 @@ class Vacancy:
 
         """
         return [self.name, self.description, self.key_skills, self.experience_id, self.premium, self.employer_name,
-                self.salary.salary_text, self.area_name, self.published_at, self.published_at_fixed]
+                self.salary.salary_text, self.area_name, self.published_at]
 
 
 class Salary:
@@ -400,10 +422,9 @@ class InputConnect:
             for vacancy in vacancies:
                 if float(vacancy.salary.salary_from) <= float(parameters_list[1]) <= float(vacancy.salary.salary_to):
                     data.append(vacancy)
-        # elif parameters_list[0] == 'published_at' or parameters_list[0] == 'published_at_fixed':
-        elif parameters_list[0] == 'published_at_fixed':
+        elif parameters_list[0] == 'published_at':
             for vacancy in vacancies:
-                if vacancy.published_at_fixed == parameters_list[1]:
+                if vacancy.published_at.strftime('%d.%m.%Y') == parameters_list[1]:
                     data.append(vacancy)
         elif parameters_list[0] == 'salary_currency':
             for vacancy in vacancies:
@@ -812,7 +833,8 @@ def main():
     elif len(vacanciesDataSet.getvacancies()) == 0:
         print("Нет данных")
     else:
-        x = input("Введи 1 для вывода таблицы в консоль или 2 для создани PDF\n")
+        # x = input("Введи 1 для вывода таблицы в консоль или 2 для создани PDF\n")
+        x = '2'
         if x == '1':
             parameters = input('Введите параметр фильтрации: ')
             sort_info = [input('Введите параметр сортировки: '), input('Обратный порядок сортировки (Да / Нет): ')]
