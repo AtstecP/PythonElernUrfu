@@ -1,5 +1,7 @@
+import concurrent.futures
 import multiprocessing
 import time
+from concurrent.futures.thread import ThreadPoolExecutor
 from functools import reduce
 from multiprocessing import Pool
 import multiprocessing
@@ -23,10 +25,10 @@ def formate_result(response):
         dict_quantity[key] = item[1][key]
         dict_salary_name[key] = item[2][key]
         dict_quantity_name[key] = item[3][key]
-    print_statics([dict_salary,
-                   dict_quantity,
-                   dict_salary_name,
-                   dict_quantity_name])
+    # print_statics([dict_salary,
+    #                dict_quantity,
+    #                dict_salary_name,
+    #                dict_quantity_name])
 
 
 def print_statics(stats):
@@ -37,20 +39,33 @@ def print_statics(stats):
 
 
 def main():
+    x = []
+    y = []
+    z = []
     names = [f for f in os.listdir('F:/Makarov/Spilt_csv') if isfile(join('F:/Makarov/Spilt_csv', f))]
-    start = time.time()
-    vacancies = DataSet('vacancies_by_year.csv')
-    stat = Statistics(vacancies)
-    print_statics(stat.salaryStat('Программист'))
-    print(f'mono {time.time() - start} sec', end='\n\n')
-    start = time.time()
-    with Pool(len(names)) as p:
-        p.map_async(read_split, names, callback=formate_result)
-        p.close()
-        p.join()
-    print(f'multi {time.time() - start} sec')
-
-
+    for i in range(30):
+        #names = [f for f in os.listdir('F:/Makarov/Spilt_csv') if isfile(join('F:/Makarov/Spilt_csv', f))]
+        # start = time.time()
+        # vacancies = DataSet('vacancies_by_year.csv')
+        # stat = Statistics(vacancies)
+        # #print_statics(stat.salaryStat('Программист'))
+        # #print(f'mono {time.time() - start} sec', end='\n\n')
+        # x.append(time.time() - start)
+        start = time.time()
+        with Pool() as p:
+            p.map_async(read_split, names, callback=formate_result)
+            p.close()
+            p.join()
+        #print(f'multi {time.time() - start} sec', end='\n\n')
+        y.append(time.time() - start)
+        start = time.time()
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            formate_result(executor.map(read_split, names))
+        #print(f'concurrent.futures {time.time() - start} sec')
+        z.append(time.time() - start)
+    print(f'x = {x}')
+    print(f'y = {y}')
+    print(f'z = {z}')
 def read_split(name):
     stat = Statistics(DataSet(f'F:/Makarov/Spilt_csv/{name}'))
     return stat.salaryStat('Программист')

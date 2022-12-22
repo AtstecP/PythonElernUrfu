@@ -24,8 +24,13 @@
 #### SplitCSV.py
 ![img.png](screenshots/split_csv.png)
 
-## Multiprocessing 
-### Сделал 10 испытаний с замерами и построил график
-#### Без многопроцессорной обработки - 10.26 сек
-#### Multiprocessing - 7.82 сек
-![img_1.png](screenshots/multi_plot.png) ![img.png](screenshots/multi_stat.png)
+## Multiprocessing
+#### Без многопроцессорной обработки - 10.92 сек
+#### Multiprocessing - 4.19 сек
+![img.png](screenshots/multi_print.png)
+## Concurrent futures
+### Прровел серию испытаний (результаты в таблице)
+![img_1.png](screenshots/concurrent_futures_graphs.png)
+### Среднии значения:
+#### Multiprocessing - 4.1811 сек 
+#### Concurrent futures – 4.1832 сек
