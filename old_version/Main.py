@@ -513,7 +513,7 @@ class Report:
         return f"<img src='data:image/png;base64,{data}'/>"
 
     def generate_pdf(self, data, img_base64):
-        env = Environment(loader=FileSystemLoader('.'))
+        env = Environment(loader=FileSystemLoader('..'))
         template = env.get_template(r'pdf_template.html')  # absolute path to html
 
         pdf_template = template.render(name=self.name,

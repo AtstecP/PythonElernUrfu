@@ -5,6 +5,7 @@ import io
 import math
 import os
 import re
+import time
 
 import ciso8601 as ciso8601
 import dateutil
@@ -76,7 +77,7 @@ class DataSet:
     'DataSet'
     """
 
-    def __init__(self, file_name):
+    def __init__(self, file_name=None):
         """
         Иницилизирует объект DataSet
         Args:
@@ -84,7 +85,13 @@ class DataSet:
         vacancies_objects (list of Vacancy): лист вакансий
         """
         self.file_name = file_name
-        self.vacancies_objects = self.parser_csv(file_name)
+        if file_name != None:
+            self.vacancies_objects = self.parser_csv(file_name)
+        else:
+            self.vacancies_objects = None
+
+    def __add__(self, data):
+        return self.setvacancies(self.getvacancies() + data.getvacancies())
 
     def setvacancies(self, vacancies_objects):
         """
@@ -143,32 +150,31 @@ class DataSet:
                 counter = 0
         return data
 
-    @staticmethod
-    def format_time(date_str):
-        """
-        Переводит вермя из строки в DateTime
-        Args:
-            row(dict): словарь у которого есть ключ 'published_at'
-        Returns:
-            datetime: время в вормате DateTime
-        """
-        return datetime.datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S%z')
-
-    @staticmethod
-    def format_time1(date_str):
-        return datetime.datetime(int(date_str[:4]), int(date_str[5:7]),
-                                 int(date_str[8:10]),
-                                 int(date_str[11:13]), int(date_str[14:16]),
-                                 int(date_str[17:19]), tzinfo=datetime.timezone(
-                datetime.timedelta(seconds=int(date_str[21:]) * 36)))
-
-
-    @staticmethod
-    def format_time2(date_str):
-        return dateutil.parser.isoparse(date_str)
+    #@staticmethod
+    # def format_time(date_str):
+    #     return datetime.datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S%z')
+    #
+    # @staticmethod
+    # def format_time1(date_str):
+    #     return datetime.datetime(int(date_str[:4]), int(date_str[5:7]),
+    #                              int(date_str[8:10]),
+    #                              int(date_str[11:13]), int(date_str[14:16]),
+    #                              int(date_str[17:19]), tzinfo=datetime.timezone(
+    #             datetime.timedelta(seconds=int(date_str[21:]) * 36)))
+    #
+    # @staticmethod
+    # def format_time2(date_str):
+    #     return dateutil.parser.isoparse(date_str)
 
     @staticmethod
     def format_time3(date_str):
+        """
+        Переводит вермя из строки в DateTime
+        Args:
+            row(str): дата в виде строки'
+        Returns:
+            datetime: время в вормате DateTime
+        """
         return ciso8601.parse_datetime(date_str)
 
     @staticmethod
@@ -180,14 +186,13 @@ class DataSet:
         Returns:
             dict: изменнеый с данными о вакансии
         """
-        dict_new = {}
-        dict_new['name'] = row['name']
+        dict_new = {'name': row['name']}
         try:
-            dict_new['description'] = row['description']
-            dict_new['key_skills'] = '\n'.join(row['key_skills'])
-            dict_new['experience_id'] = dic_transl[row['experience_id']]
-            dict_new['premium'] = 'Да' if (row['premium'] == 'True') else 'Нет'
-            dict_new['employer_name'] = row['employer_name']
+            dict_new = {'description': row['description'],
+                        'key_skills': ('\n'.join(row['key_skills'])),
+                        'experience_id': dic_transl[row['experience_id']],
+                        'premium': 'Да' if (row['premium'] == 'True') else 'Нет',
+                        'employer_name': row['employer_name']}
             salary_from = "{0:,}".format((int(float(row['salary_from'])))).replace(',', ' ')
             salary_to = "{0:,}".format((int(float(row['salary_to'])))).replace(',', ' ')
             salary_text = f"{salary_from} - {salary_to} ({dic_transl[row['salary_currency']]}) ({'С вычетом' if row['salary_gross'] == 'False' else 'Без вычета'} налогов)"
@@ -198,9 +203,18 @@ class DataSet:
                                     row['salary_currency'], math.floor(
                 (int(row['salary_from'].replace('.0', '')) + int(row['salary_to'].replace('.0', ''))) / 2))
         dict_new['area_name'] = row['area_name']
-        dict_new['published_at'] = DataSet.format_time(row['published_at'])
+        dict_new['published_at'] = DataSet.format_time3(row['published_at'])
         return dict_new
 
+    @staticmethod
+    def delete_tags(row):
+        temp_value = ''
+        while row.find('<') != -1:
+            temp_value += row[:row.find('<')]
+            current_index = row.find('>') + 1
+            row = row[current_index:]
+        else:
+            return temp_value + row
     @staticmethod
     def clear_row_csv(row, list_naming):
         """
@@ -212,15 +226,17 @@ class DataSet:
             dict: словарь с очишиными данными о вакансии
         """
         dict_new = {}
-        pattern = re.compile('<.*?>')
-        pattern1 = re.compile('\s+')
+        # pattern = re.compile('<.*?>')
+        # pattern1 = re.compile('\s+')
         for i in range(0, len(list_naming)):
             if list_naming[i] == 'key_skills':
                 dict_new[list_naming[i]] = row[i].split("\n")
             else:
+                row[i] = DataSet.delete_tags(row[i])
+                row[i] = row[i].replace('  ', ' ')
                 # row[i] = row[i].replace("\n", ", ")
-                row[i] = re.sub(pattern, '', row[i])
-                row[i] = re.sub(pattern1, ' ', row[i])
+                # row[i] = re.sub(pattern, '', row[i])
+                # row[i] = re.sub(pattern1, ' ', row[i])
                 row[i] = row[i].strip()
                 dict_new[list_naming[i]] = row[i]
 
@@ -598,20 +614,20 @@ class Statistics:
         # print(f'Динамика количества вакансий по годам: {dict_quantity}')
         # print(f'Динамика уровня зарплат по годам для выбранной профессии: {dict_salary_name}')
         # print(f'Динамика количества вакансий по годам для выбранной профессии: {dict_quantity_name}')
-        x = {}
-        for i, key in enumerate(self.dict_salary_city.keys()):
-            if i == 10 or self.dict_salary_city[key] == 0:
-                break
-            x[key] = self.dict_salary_city[key]
-        # print(f'Уровень зарплат по городам (в порядке убывания): {x}')
-        self.dict_salary_city = x
-        x = {}
-        for i, key in enumerate(self.dict_vacancy_share.keys()):
-            if i == 10 or self.dict_vacancy_share[key] == 0:
-                break
-            x[key] = self.dict_vacancy_share[key]
-        # print(f'Доля вакансий по городам (в порядке убывания): {x}')
-        self.dict_vacancy_share = x
+        # x = {}
+        # for i, key in enumerate(self.dict_salary_city.keys()):
+        #     if i == 10 or self.dict_salary_city[key] == 0:
+        #         break
+        #     x[key] = self.dict_salary_city[key]
+        # # print(f'Уровень зарплат по городам (в порядке убывания): {x}')
+        # self.dict_salary_city = x
+        # x = {}
+        # for i, key in enumerate(self.dict_vacancy_share.keys()):
+        #     if i == 10 or self.dict_vacancy_share[key] == 0:
+        #         break
+        #     x[key] = self.dict_vacancy_share[key]
+        # # print(f'Доля вакансий по городам (в порядке убывания): {x}')
+        # self.dict_vacancy_share = x
 
     def salaryStat(self, name):
         """
@@ -621,17 +637,24 @@ class Statistics:
         """
         self.__filling_dict(name)
         self.__sort_dict()
-
-        Report(name).generate_excel(
-            [self.dict_salary, self.dict_quantity, self.dict_salary_name, self.dict_quantity_name,
-             self.dict_salary_city, self.dict_vacancy_share])
-        img_base64 = Report(name).generate_image(
-            [self.dict_salary, self.dict_quantity, self.dict_salary_name, self.dict_quantity_name,
-             self.dict_salary_city, self.dict_vacancy_share])
-        Report(name).generate_pdf(
-            [self.dict_salary, self.dict_quantity, self.dict_salary_name, self.dict_quantity_name,
-             self.dict_salary_city, self.dict_vacancy_share],
-            img_base64.replace('img ', 'img width="100%"'))
+        return [self.dict_salary,
+                self.dict_quantity,
+                self.dict_salary_name,
+                self.dict_quantity_name]
+        # print(f'Динамика уровня зарплат по годам: {self.dict_salary}')
+        # print(f'Динамика количества вакансий по годам: {self.dict_quantity}')
+        # print(f'Динамика уровня зарплат по годам для выбранной профессии: {self.dict_salary_name}')
+        # print(f'Динамика количества вакансий по годам для выбранной профессии: {self.dict_quantity_name}')
+        # Report(name).generate_excel(
+        #     [self.dict_salary, self.dict_quantity, self.dict_salary_name, self.dict_quantity_name,
+        #      self.dict_salary_city, self.dict_vacancy_share])
+        # img_base64 = Report(name).generate_image(
+        #     [self.dict_salary, self.dict_quantity, self.dict_salary_name, self.dict_quantity_name,
+        #      self.dict_salary_city, self.dict_vacancy_share])
+        # Report(name).generate_pdf(
+        #     [self.dict_salary, self.dict_quantity, self.dict_salary_name, self.dict_quantity_name,
+        #      self.dict_salary_city, self.dict_vacancy_share],
+        #     img_base64.replace('img ', 'img width="100%"'))
 
 
 class Report:
@@ -824,6 +847,8 @@ def main():
     Выполняется при запуске программы
     Ведет диалог с пользователем и вызывает методы для работы с данными
     """
+    start = time.time()
+
     # name = input('Введите название файла: ')
     name = "vacancies_by_year.csv"
     # name_vacancy = input('Введите название профессии: ')
@@ -857,6 +882,7 @@ def main():
             stat.salaryStat(name_vacancy)
         else:
             print('IllegalArgument')
+    print(time.time() - start)
 
 
 if __name__ == "__main__":

@@ -41,7 +41,7 @@ class SplitCSV:
             return []
         flag = True
         counter = 0
-        directory_path = 'F:/Makarov/Spilt_csv'
+        directory_path = '/Spilt_csv'
         if not os.path.exists(directory_path):
             os.makedirs(directory_path)
         with open(self.name, encoding='utf-8-sig') as file:
