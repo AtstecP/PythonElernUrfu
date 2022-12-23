@@ -29,8 +29,10 @@
 #### Multiprocessing - 4.19 сек
 ![img.png](screenshots/multi_print.png)
 ## Concurrent futures
-### Прровел серию испытаний (результаты в таблице)
+### Прровел серию испытаний (результаты на графике)
 ![img_1.png](screenshots/concurrent_futures_graphs.png)
 ### Среднии значения:
 #### Multiprocessing - 4.1811 сек 
 #### Concurrent futures – 4.1832 сек
+## Currency 
+![img.png](screenshots/Currency.png)

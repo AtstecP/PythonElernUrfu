@@ -3,3 +3,4 @@
 venv/
 Spilt_csv/
 __pycache__/
+!currency_api.csv
