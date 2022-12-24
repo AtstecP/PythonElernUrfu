@@ -1,6 +1,7 @@
 *.csv
 *.idea
 *.rar
+files_csv.rar
 venv/
 Spilt_csv/
 __pycache__/
