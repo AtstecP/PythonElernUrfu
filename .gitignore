@@ -5,3 +5,4 @@ Spilt_csv/
 __pycache__/
 !currency_api.csv
 !hhru.csv
+!100vacancies.csv

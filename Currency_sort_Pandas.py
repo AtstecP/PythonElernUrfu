@@ -2,6 +2,7 @@ import csv
 import xml.etree.ElementTree as ET
 import pandas as pd
 import requests
+import numpy as np
 from datetime import datetime, timedelta
 from PrintOrCreate import DataSet
 
@@ -10,17 +11,52 @@ def main():
     """
     Вызывает метод чтения, затем убирает лишнии валюты и вызывает метод записи
     """
-
     name = 'vacancies_dif_currencies.csv'
     min_date, max_date, dict_currency, dataframe = parser_csv(name)
-    # print(dataframe)
-    dict_currencies_new = {'date': None}
-    for key in dict_currency.keys():
-        if dict_currency[key] > 5000:
-            dict_currencies_new[key] = dict_currency[key]
-    dict_currencies_new.pop('')
-    data_currency = createCurrencies_csv(dict_currencies_new, min_date, max_date)
+    data_currency = createCurrencies_csv(dict_currency, DataSet.format_time3(min_date), DataSet.format_time3(max_date))
+    # print(data_currency)
     create_dataframe(dataframe, data_currency)
+
+
+def get_salary(df_, data_currency):
+    """
+    Получает строки из DataFrame и возврашает данные о зарплате
+    Args:
+        df_:
+        data_currency:
+    Returns:
+         float or None: сумма зарплаты если достаточно данных
+    """
+    try:
+        cof = data_currency[df_[5][:7]][df_[3]]
+    except Exception:
+        cof = 1
+    if cof == None:
+        return None
+    elif df_[1] == '' and df_[2] != '':
+        return round((float(df_[2]) * cof), 1)
+    elif df_[1] != '' and df_[2] == '':
+        return round((float(df_[1]) * cof), 1)
+    elif df_[1] != '' and df_[2] != '':
+        return round(((float(df_[2]) + float(df_[2])) * cof / 2), 1)
+    else:
+        return None
+    # try:
+    #     cof = data_currency[df_.published_at[:7]][df_.salary_currency]
+    # except Exception:
+    #     cof = 1
+    # if cof == None:
+    #     return None
+    # elif df_.salary_from == '' and df_.salary_to != '':
+    #     return round((float(df_.salary_to) * cof), 1)
+    # elif df_.salary_from != '' and df_.salary_to == '':
+    #     return round((float(df_.salary_from) * cof), 1)
+    # elif df_.salary_from != '' and df_.salary_to != '':
+    #     return round(((float(df_.salary_to) + float(df_.salary_to)) * cof / 2), 1)
+    # else:
+    #     return None
+
+
 
 
 def create_dataframe(data, data_currency):
@@ -29,37 +65,14 @@ def create_dataframe(data, data_currency):
         data(list): данные о вакансиях
         data_currency(dict): данные о курсах валют по года
     Returns:
-         list: отформатированые данные
+         DataFrame: отформатированые данные
     """
-    dataframe = [['name', 'salary', 'area_name', 'published_at']]
-    flag = 0
-    for row in data:
-        if flag == 100:
-            break
-        flag += 1
-        vacancy = [row[0]]
-        try:
-            cof = data_currency[row[5][:7]][row[3]]
-        except Exception:
-            cof = 1
-        if cof == None:
-            vacancy.append([None, row[5], row[4]])
-            continue
-        if row[1] == '' and row[2] != '':
-            vacancy.append(round((float(row[2]) * cof), 1))
-        elif row[1] != '' and row[2] == '':
-            vacancy.append(round((float(row[1]) * cof), 1))
-        elif row[1] != '' and row[2] != '':
-            vacancy.append(round(((float(row[2]) + float(row[2])) * cof / 2), 1))
-        else:
-            vacancy.append(None)
-        vacancy.append(row[4])
-        vacancy.append(row[5])
-        dataframe.append(vacancy)
-    with open(f"F:/Makarov/100vacancies_1.csv", "w", newline="", encoding='utf-8-sig') as f:
-        writer = csv.writer(f)
-        writer.writerows(dataframe)
-    return dataframe
+    data_salary = [get_salary(item, data_currency) for item in data.values.tolist()]
+    df = pd.DataFrame(
+        data={'name': data.name, 'salary': data_salary, 'area_name': data.area_name, 'published_at': data.published_at}, )
+    #df = data.assign(prod_country_rank=lambda df_: get_salary(df_, data_currency))
+    df.to_csv('100vacancies.csv', index=False)
+    return df
 
 
 def createCurrencies_csv(dict_currencies_new, min_date, max_date):
@@ -80,7 +93,7 @@ def createCurrencies_csv(dict_currencies_new, min_date, max_date):
         for date in pd.date_range(start=min_date.strftime('%Y-%m-%d'),
                                   end=(max_date + timedelta(days=30)).strftime('%Y-%m-%d'), freq='M'):
             info = make_request([date.strftime('%m'), date.year])
-            for key in dict_currencies_new.keys():
+            for key in list(dict_currencies_new.keys()):
                 try:
                     dict_currencies_new[key] = info[key]
                 except Exception:
@@ -116,28 +129,17 @@ def parser_csv(name):
     Args:
         name(str): имя фала для считывания
     Returns:
-        dict_currencies_new(dict): словарь с валютами
         min_date(datetime): самая рання записаь
         max_date(datetime):  самая поздняя запись
-        dataframe(list): данные из файла
+        dict_currencies_new(dict): словарь с валютами
+        DataFrame: даныне из файла
     """
-    min_date = datetime.now()
-    max_date = DataSet.format_time3('2000-07-14T11:06:59+0300')
-    dict_currencies = {}
-    dataframe = []
-    with open(name, encoding='utf-8-sig') as file:
-        reader = csv.reader(file)
-        heading = next(reader)
-        for row in reader:
-            dataframe.append(row)
-            date = DataSet.format_time3(row[5])
-            min_date = date if (date.timestamp() < min_date.timestamp()) else min_date
-            max_date = date if (date.timestamp() > min_date.timestamp()) else max_date
-            if dict_currencies.__contains__(row[3]):
-                dict_currencies[row[3]] += 1
-            else:
-                dict_currencies[row[3]] = 0
-    return min_date, max_date, dict_currencies, dataframe
+    df = pd.read_csv(name, nrows=3000, )
+    df.published_at = df.published_at.astype('string')
+    currencies = df.salary_currency.value_counts() \
+        .loc[lambda x: x > 5000] \
+        .to_dict()
+    return min(df.published_at), max(df.published_at), currencies, df
 
 
 if __name__ == "__main__":
