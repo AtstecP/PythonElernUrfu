@@ -10,7 +10,9 @@ def main():
 def crete_csv(name, date):
     """
     Создает csv файл по данным из hh.ru api
-    :param name:
+    Args:
+        name(str): Имя файла
+        date(str): дата для запроса
     :return:
     """
     with open(f"F:/Makarov/{name}", "w", newline="", encoding='utf-8-sig') as f:
@@ -23,12 +25,12 @@ def crete_csv(name, date):
                 if vacancies.__contains__('items'):
                     for row in vacancies['items']:
                         if row['salary'] is None:
-                            writer.writerow([row['name'], '', '', '', row['area']['name'], row['published_at']])
+                            writer.writerow([row['name'], None, None, None, row['area']['name'], row['published_at']])
                         else:
                             writer.writerow([row['name'], row['salary']['from'], row['salary']['to'],
                                              row['salary']['currency'], row['area']['name'], row['published_at']])
                 else:
-                    print(vacancies)
+                    print(vacancies) # для ошибок получении api запроса
                 time.sleep(0.25)
 
 
