@@ -150,7 +150,7 @@ class DataSet:
                 counter = 0
         return data
 
-    #@staticmethod
+    # @staticmethod
     # def format_time(date_str):
     #     return datetime.datetime.strptime(date_str, '%Y-%m-%dT%H:%M:%S%z')
     #
@@ -202,7 +202,7 @@ class DataSet:
         dict_new['salary'] = Salary(salary_text, row["salary_from"], row["salary_to"], row['salary_gross'],
                                     row['salary_currency'], math.floor(
                 (int(row['salary_from'].replace('.0', '')) + int(row['salary_to'].replace('.0', ''))) / 2))
-        dict_new['area_name'] = row['area_name']
+        dict_new['area_name'] = row['area_name'] if row.__contains__('area_name') else None
         dict_new['published_at'] = DataSet.format_time3(row['published_at'])
         return dict_new
 
@@ -215,6 +215,7 @@ class DataSet:
             row = row[current_index:]
         else:
             return temp_value + row
+
     @staticmethod
     def clear_row_csv(row, list_naming):
         """
@@ -584,14 +585,21 @@ class Statistics:
                         vacancy.salary.salary_currency]
                     self.dict_quantity_name[vacancy.published_at.year] += 1
 
+        # for key in self.dict_salary.keys():
+        #     if not self.dict_salary_name.__contains__(key):
+        #         self.dict_salary_name[key] = 0
+        #         self.dict_quantity_name[key] = 0
+
     def __sort_dict(self):
         """
         Сортирует словари с вакансиями
         """
         for item in self.dict_salary.keys():
-            self.dict_salary[item] = math.trunc(self.dict_salary[item] / self.dict_quantity[item])
-        for item in self.dict_salary_name.keys():
-            self.dict_salary_name[item] = math.trunc(self.dict_salary_name[item] / self.dict_quantity_name[item])
+            try:
+                self.dict_salary[item] = math.trunc(self.dict_salary[item] / self.dict_quantity[item])
+                self.dict_salary_name[item] = math.trunc(self.dict_salary_name[item] / self.dict_quantity_name[item])
+            except Exception:
+                print(f' vacancie not exist in {item}') #защита от деления на ноль
         for item in self.dict_salary_city.keys():
             self.dict_salary_city[item] = math.trunc(self.dict_salary_city[item] / self.dict_vacancy_share[item])
 
@@ -614,20 +622,20 @@ class Statistics:
         # print(f'Динамика количества вакансий по годам: {dict_quantity}')
         # print(f'Динамика уровня зарплат по годам для выбранной профессии: {dict_salary_name}')
         # print(f'Динамика количества вакансий по годам для выбранной профессии: {dict_quantity_name}')
-        # x = {}
-        # for i, key in enumerate(self.dict_salary_city.keys()):
-        #     if i == 10 or self.dict_salary_city[key] == 0:
-        #         break
-        #     x[key] = self.dict_salary_city[key]
-        # # print(f'Уровень зарплат по городам (в порядке убывания): {x}')
-        # self.dict_salary_city = x
-        # x = {}
-        # for i, key in enumerate(self.dict_vacancy_share.keys()):
-        #     if i == 10 or self.dict_vacancy_share[key] == 0:
-        #         break
-        #     x[key] = self.dict_vacancy_share[key]
-        # # print(f'Доля вакансий по городам (в порядке убывания): {x}')
-        # self.dict_vacancy_share = x
+        x = {}
+        for i, key in enumerate(self.dict_salary_city.keys()):
+            if i == 10 or self.dict_salary_city[key] == 0:
+                break
+            x[key] = self.dict_salary_city[key]
+        # print(f'Уровень зарплат по городам (в порядке убывания): {x}')
+        self.dict_salary_city = x
+        x = {}
+        for i, key in enumerate(self.dict_vacancy_share.keys()):
+            if i == 10 or self.dict_vacancy_share[key] == 0:
+                break
+            x[key] = self.dict_vacancy_share[key]
+        # print(f'Доля вакансий по городам (в порядке убывания): {x}')
+        self.dict_vacancy_share = x
 
     def salaryStat(self, name):
         """
@@ -637,24 +645,24 @@ class Statistics:
         """
         self.__filling_dict(name)
         self.__sort_dict()
-        return [self.dict_salary,
-                self.dict_quantity,
-                self.dict_salary_name,
-                self.dict_quantity_name]
-        # print(f'Динамика уровня зарплат по годам: {self.dict_salary}')
-        # print(f'Динамика количества вакансий по годам: {self.dict_quantity}')
-        # print(f'Динамика уровня зарплат по годам для выбранной профессии: {self.dict_salary_name}')
-        # print(f'Динамика количества вакансий по годам для выбранной профессии: {self.dict_quantity_name}')
+        # return [self.dict_salary,
+        #         self.dict_quantity,
+        #         self.dict_salary_name,
+        #         self.dict_quantity_name]
+        print(f'Динамика уровня зарплат по годам: {self.dict_salary}')
+        print(f'Динамика количества вакансий по годам: {self.dict_quantity}')
+        print(f'Динамика уровня зарплат по годам для выбранной профессии: {self.dict_salary_name}')
+        print(f'Динамика количества вакансий по годам для выбранной профессии: {self.dict_quantity_name}')
         # Report(name).generate_excel(
         #     [self.dict_salary, self.dict_quantity, self.dict_salary_name, self.dict_quantity_name,
         #      self.dict_salary_city, self.dict_vacancy_share])
-        # img_base64 = Report(name).generate_image(
-        #     [self.dict_salary, self.dict_quantity, self.dict_salary_name, self.dict_quantity_name,
-        #      self.dict_salary_city, self.dict_vacancy_share])
-        # Report(name).generate_pdf(
-        #     [self.dict_salary, self.dict_quantity, self.dict_salary_name, self.dict_quantity_name,
-        #      self.dict_salary_city, self.dict_vacancy_share],
-        #     img_base64.replace('img ', 'img width="100%"'))
+        img_base64 = Report(name).generate_image(
+            [self.dict_salary, self.dict_quantity, self.dict_salary_name, self.dict_quantity_name,
+             self.dict_salary_city, self.dict_vacancy_share])
+        Report(name).generate_pdf(
+            [self.dict_salary, self.dict_quantity, self.dict_salary_name, self.dict_quantity_name,
+             self.dict_salary_city, self.dict_vacancy_share],
+            img_base64.replace('img ', 'img width="100%"'))
 
 
 class Report:
@@ -837,9 +845,11 @@ class Report:
                                        dict_salary_city=data[4],
                                        dict_vacancy_share=data[5],
                                        image=img_base64)
-
-        config = pdfkit.configuration(wkhtmltopdf=r'F:\wkhtmltopdf\bin\wkhtmltopdf.exe')
-        pdfkit.from_string(pdf_template, r'F:\PycharmProjects\pythonElern\report.pdf', configuration=config)
+        with open("F:/PycharmProjects/djangoProject/main/templates/main/my_new_file.html", "w",
+                  encoding='utf-8-sig') as fh:
+            fh.write(pdf_template)
+        # config = pdfkit.configuration(wkhtmltopdf=r'F:\wkhtmltopdf\bin\wkhtmltopdf.exe')
+        # pdfkit.from_string(pdf_template, r'F:\PycharmProjects\pythonElern\report.pdf', configuration=config)
 
 
 def main():
@@ -850,9 +860,9 @@ def main():
     start = time.time()
 
     # name = input('Введите название файла: ')
-    name = "vacancies_by_year.csv"
+    name = "vacancies_with_skills.csv"
     # name_vacancy = input('Введите название профессии: ')
-    name_vacancy = 'Программист'
+    name_vacancy = 'Devops'
     vacanciesDataSet = DataSet(name)
     if os.stat(name).st_size == 0:
         print("Пустой файл")
@@ -860,7 +870,7 @@ def main():
         print("Нет данных")
     else:
         # x = input("Введи 1 для вывода таблицы в консоль или 2 для создани PDF\n")
-        x = '1'
+        x = '2'
         if x == '1':
             parameters = input('Введите параметр фильтрации: ')
             sort_info = [input('Введите параметр сортировки: '), input('Обратный порядок сортировки (Да / Нет): ')]

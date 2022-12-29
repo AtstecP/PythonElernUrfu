@@ -17,7 +17,7 @@ def main():
     min_date, max_date, dict_currency, dataframe = parser_csv(name)
     createCurrencies_csv(dict_currency, DataSet.format_time3(min_date), DataSet.format_time3(max_date))
     print(data_currencies)
-    #create_dataframe(dataframe)
+    # create_dataframe(dataframe)
 
 
 def get_salary(df_):
@@ -68,7 +68,8 @@ def create_dataframe(data):
     """
 
     df = pd.DataFrame(
-        data={'name': data.name, 'salary': data.apply(get_salary, axis=1), 'area_name': data.area_name, 'published_at': data.published_at}, )
+        data={'name': data.name, 'salary': data.apply(get_salary, axis=1), 'area_name': data.area_name,
+              'published_at': data.published_at}, )
     # df = data.assign(prod_country_rank=lambda df_: get_salary(df_))
     df.to_csv('100vacancies.csv', index=False)
     return df
@@ -134,8 +135,8 @@ def parser_csv(name):
     df.published_at = df.published_at.astype('string')
     currencies = {'date': None}
     currencies.update(df.salary_currency.value_counts() \
-        .loc[lambda x: x > 5000] \
-        .to_dict())
+                      .loc[lambda x: x > 5000] \
+                      .to_dict())
     return min(df.published_at), max(df.published_at), currencies, df
 
 
