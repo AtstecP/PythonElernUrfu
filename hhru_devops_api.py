@@ -1,12 +1,43 @@
 import csv
 import time
+from jinja2 import Environment, FileSystemLoader
 
 import pandas as pd
 import requests
 
+
 def main():
-    for date in pd.date_range(start='2022-12-01', end='2022-12-31', freq='D'):
-        crete_csv(f'devops_{date}.cvs', date)
+    data = []
+    info = requests.get('https://api.hh.ru/vacancies?text=%22devops%22&specialization=1&per_page=100').json()
+    # vacancies = get_page(1, '00:00:00', '23:59:59', '2023-01-05', 'devops')
+
+    for row in info['items']:
+        #print(f'    {row["published_at"]}---->{row["name"]}')
+        if row['name'].lower().__contains__('devops') and not row['salary'] is None:
+            data.append({'id': row['id'], 'published_at': row['published_at']})
+            # data.append({'employer_name': row['employer']['name'], 'name': row['name'], 'salary_from': row['salary']['from'],
+            #              'salary_to': row['salary']['to'],'key_skills':row['key_skills'],
+            #              'salary_currency': row['salary']['currency'], 'area_name': row['area']['name'],
+            #              'published_at': row['published_at']})
+    data = sorted(data, key=lambda x: x['published_at'], reverse=True)
+    print(data)
+    vacancies = []
+    for i, vacancy in enumerate(data):
+        if i == 10:
+            break
+        #info = requests.get(f'https://api.hh.ru/vacancies/{vacancy["id"]}').json()
+        # vacancies.append({'name': info['name'],
+        #                   'description': info['description'],
+        #                   'key_skills': info['key_skills'],
+        #                   'employer': info['employer'],
+        #                   'salary_from': info['salary']['from'],
+        #                   'salary_to': info['salary']['to'],
+        #                   'salary_currency': info['salary']['currency'],
+        #                   'area_name': info['area']['name'],
+        #                   'published_at': info['published_at']})
+        vacancies.append(requests.get(f'https://api.hh.ru/vacancies/{vacancy["id"]}').json())
+    print(vacancies)
+
 
 
 def crete_csv(name, date):
@@ -17,22 +48,35 @@ def crete_csv(name, date):
         date(str): дата для запроса
     :return:
     """
-    with open(f"{name}", "w", newline="", encoding='utf-8-sig') as f:
-        for text in ['devops', 'development operations']:
+    print('\n' + date, end='')
+    time.sleep(0.25)
+    data = []
+    text = 'devops'
+    try:
+        for page in range(0, 20):
+            vacancies = get_page(page, '00:00:00', '23:59:59', date, text)
+            if vacancies.__contains__('items'):
+                if vacancies['found'] == 0:
+                    break
+                for row in vacancies['items']:
+                    print(f'    {row["id"]}---->{row["name"]}')
+                    if row['name'].lower().__contains__(text) and not row['salary'] is None:
+                        data.append([row['id'], row['name'], row['salary']['from'], row['salary']['to'],
+                                     row['salary']['currency'], row['area']['name'], row['published_at']])
+            else:
+                print(vacancies)  # для ошибок получении api запроса
+            print(page)
+    except Exception as e:
+        print(e)
+        return False
+    if data:
+        with open(f"{name}", "w", newline="", encoding='utf-8-sig') as f:
             writer = csv.writer(f)
-            writer.writerow(['name', 'salary_from', 'salary_to', 'salary_currency', 'area_name', 'published_at'])
-            for page in range(0, 20):
-                vacancies = get_page(1, '00:00:00', '23:59:59', date, text)
-                if vacancies.__contains__('items'):
-                    for row in vacancies['items']:
-                        if row['salary'] is None:
-                            writer.writerow([row['name'], None, None, None, row['area']['name'], row['published_at']])
-                        else:
-                            writer.writerow([row['name'], row['salary']['from'], row['salary']['to'],
-                                             row['salary']['currency'], row['area']['name'], row['published_at']])
-                else:
-                    print(vacancies)  # для ошибок получении api запроса
-                time.sleep(0.25)
+            writer.writerow(['id', 'name', 'salary_from', 'salary_to', 'salary_currency', 'area_name', 'published_at'])
+            writer.writerows(data)
+    else:
+        print(f'-----{data}----->clean')
+    return True
 
 
 def get_page(page, time_from, time_to, date, text):
@@ -52,11 +96,10 @@ def get_page(page, time_from, time_to, date, text):
         'page': page,
         'per_page': 100,
         'date_from': f'{date}T{time_from}+0300',
-       # 'date_to': f'{date}T{time_to}+0300',
+        'date_to': f'{date}T{time_to}+0300',
     }
     request = requests.get('https://api.hh.ru/vacancies', params).json()
     return request
-
 
 
 if __name__ == '__main__':

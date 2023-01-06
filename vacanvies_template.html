@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+    <div>
+        {% for vacancy in vacancies %}
+            <div>
+            <h2>{{ vacancy['name'] }}</h2>
+            <br>
+            <p><b>Зарплата:</b> от {{ vacancy['salary']['from'] }} до {{ vacancy['salary']['to'] }} {{ vacancy['salary']['currency'] }}</p>
+            <p>{{ vacancy['description']}}</p>
+            <p><b>Навыки:</b>{{ skil for skill in vacancy['key_skills'] }}</p>
+            <p><b>Компания:</b> {{ vacancy['employer']['name'] }}</p>
+            <p><b>Расположение:</b> {{ vacancy['address']['city'] }}</p>
+            <p><b>Дата публикации:</b> {{ vacancy['published_at'] }}</p>
+            <a href={{ vacancy['alternate_url'] }}>Страница на HH.ru</a>
+            <hr>
+
+        </div>
+        {% endfor %}
+    </div>
+
+
+

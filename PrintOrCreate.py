@@ -599,6 +599,8 @@ class Statistics:
                 self.dict_salary[item] = math.trunc(self.dict_salary[item] / self.dict_quantity[item])
                 self.dict_salary_name[item] = math.trunc(self.dict_salary_name[item] / self.dict_quantity_name[item])
             except Exception:
+                self.dict_salary_name[item] = 0
+                self.dict_quantity_name[item] = 0
                 print(f' vacancie not exist in {item}') #защита от деления на ноль
         for item in self.dict_salary_city.keys():
             self.dict_salary_city[item] = math.trunc(self.dict_salary_city[item] / self.dict_vacancy_share[item])
@@ -636,6 +638,8 @@ class Statistics:
             x[key] = self.dict_vacancy_share[key]
         # print(f'Доля вакансий по городам (в порядке убывания): {x}')
         self.dict_vacancy_share = x
+        self.dict_salary_name = dict(sorted(self.dict_salary_name.items(), key=lambda item: item[0]))
+        self.dict_quantity_name = dict(sorted(self.dict_quantity_name.items(), key=lambda item: item[0]))
 
     def salaryStat(self, name):
         """
@@ -845,11 +849,11 @@ class Report:
                                        dict_salary_city=data[4],
                                        dict_vacancy_share=data[5],
                                        image=img_base64)
-        with open("F:/PycharmProjects/djangoProject/main/templates/main/my_new_file.html", "w",
+        with open("D:/PycharmProjects/PythonElernUrfu/my_new_file.html", "w",
                   encoding='utf-8-sig') as fh:
             fh.write(pdf_template)
         # config = pdfkit.configuration(wkhtmltopdf=r'F:\wkhtmltopdf\bin\wkhtmltopdf.exe')
-        # pdfkit.from_string(pdf_template, r'F:\PycharmProjects\pythonElern\report.pdf', configuration=config)
+        # pdfkit.from_string(pdf_template, r'D:\PycharmProjects\pythonElern\report.pdf', configuration=config)
 
 
 def main():
@@ -860,7 +864,7 @@ def main():
     start = time.time()
 
     # name = input('Введите название файла: ')
-    name = "vacancies_with_skills.csv"
+    name = "vacancies_dif_currencies.csv"
     # name_vacancy = input('Введите название профессии: ')
     name_vacancy = 'Devops'
     vacanciesDataSet = DataSet(name)
