@@ -534,6 +534,8 @@ class Statistics:
         dict_quantity_name(dict{int:int}): статистика год:количество вакантных мест для выбранной вакансии
         dict_salary_city(dict{str:float}): статистика город:средння зарплата (не более 10)
         dict_vacancy_share(dict{str:float}): статистика город:относительное число вакансий (не более 10)
+        dict_salary_city_name(dict{str:float}): статистика город:средння зарплата   для выбранной вакансии(не более 10)
+        dict_vacancy_share_name(dict{str:float}): статистика город:относительное число вакансий   для выбранной вакансии(не более 10)
     """
 
     def __init__(self, dataset):
@@ -549,6 +551,8 @@ class Statistics:
         self.dict_quantity_name = {}
         self.dict_salary_city = {}
         self.dict_vacancy_share = {}
+        self.dict_salary_city_name = {}
+        self.dict_vacancy_share_name = {}
 
     def __filling_dict(self, name):
         """
@@ -556,6 +560,11 @@ class Statistics:
         Args:
             name(str): название вакансии
         """
+
+        chk_pat = '(?:{})'.format('|'.join(
+            ['техподдержка', 'тех поддержка', 'technical support engineer', 'поддержка', 'support', 'підтримки']))
+
+
         for vacancy in self.dataset.getvacancies():
             if not self.dict_salary.__contains__(vacancy.published_at.year):
                 self.dict_salary[vacancy.published_at.year] = vacancy.salary.salary_average * currency_to_rub[
@@ -575,7 +584,26 @@ class Statistics:
                     vacancy.salary.salary_currency]
                 self.dict_vacancy_share[vacancy.area_name] += 1
 
-            if name in vacancy.name:
+            if re.search(chk_pat, vacancy.name.lower(), flags=re.I):
+            #if name in vacancy.name.lower():
+                # if not self.dict_salary_city.__contains__(vacancy.area_name):
+                #     self.dict_salary_city[vacancy.area_name] = vacancy.salary.salary_average * currency_to_rub[
+                #         vacancy.salary.salary_currency]
+                #     self.dict_vacancy_share[vacancy.area_name] = 1
+                # else:
+                #     self.dict_salary_city[vacancy.area_name] += vacancy.salary.salary_average * currency_to_rub[
+                #         vacancy.salary.salary_currency]
+                #     self.dict_vacancy_share[vacancy.area_name] += 1
+
+                if not self.dict_salary_city_name.__contains__(vacancy.area_name):
+                    self.dict_salary_city_name[vacancy.area_name] = vacancy.salary.salary_average * currency_to_rub[
+                        vacancy.salary.salary_currency]
+                    self.dict_vacancy_share_name[vacancy.area_name] = 1
+                else:
+                    self.dict_salary_city_name[vacancy.area_name] += vacancy.salary.salary_average * currency_to_rub[
+                        vacancy.salary.salary_currency]
+                    self.dict_vacancy_share_name[vacancy.area_name] += 1
+
                 if not self.dict_salary_name.__contains__(vacancy.published_at.year):
                     self.dict_salary_name[vacancy.published_at.year] = vacancy.salary.salary_average * currency_to_rub[
                         vacancy.salary.salary_currency]
@@ -601,7 +629,9 @@ class Statistics:
             except Exception:
                 self.dict_salary_name[item] = 0
                 self.dict_quantity_name[item] = 0
-                print(f' vacancie not exist in {item}') #защита от деления на ноль
+                print(f' vacancie not exist in {item}')  # защита от деления на ноль
+
+
         for item in self.dict_salary_city.keys():
             self.dict_salary_city[item] = math.trunc(self.dict_salary_city[item] / self.dict_vacancy_share[item])
 
@@ -615,6 +645,40 @@ class Statistics:
                 self.dict_vacancy_share[item] = round(self.dict_vacancy_share[item] / lenght, 4)
         self.dict_vacancy_share = dict(
             sorted(self.dict_vacancy_share.items(), key=lambda item: item[1], reverse=True))
+
+
+        for item in self.dict_salary_city_name.keys():
+            self.dict_salary_city_name[item] = math.trunc(self.dict_salary_city_name[item] / self.dict_vacancy_share_name[item])
+
+        lenght = sum(self.dict_vacancy_share_name.values())
+
+        for item in self.dict_vacancy_share_name.keys():
+            if self.dict_vacancy_share_name[item] < (lenght / 100):
+                self.dict_vacancy_share_name[item] = 0
+                self.dict_salary_city_name[item] = 0
+            else:
+                self.dict_vacancy_share_name[item] = round(self.dict_vacancy_share_name[item] / lenght, 4)
+        self.dict_vacancy_share_name = dict(
+            sorted(self.dict_vacancy_share_name.items(), key=lambda item: item[1], reverse=True))
+        x = {}
+        self.dict_salary_city_name = dict(sorted(self.dict_salary_city_name.items(), key=lambda item: item[1], reverse=True))
+        for i, key in enumerate(self.dict_salary_city_name.keys()):
+            if i == 10 or self.dict_salary_city_name[key] == 0:
+                break
+            x[key] = self.dict_salary_city_name[key]
+        # print(f'Уровень зарплат по городам (в порядке убывания): {x}')
+        self.dict_salary_city_name = x
+        x = {}
+        for i, key in enumerate(self.dict_vacancy_share_name.keys()):
+            if i == 10 or self.dict_vacancy_share_name[key] == 0:
+                break
+            x[key] = self.dict_vacancy_share_name[key]
+        # print(f'Доля вакансий по городам (в порядке убывания): {x}')
+        self.dict_vacancy_share_name = x
+
+
+
+
         self.dict_salary_city = dict(sorted(self.dict_salary_city.items(), key=lambda item: item[1], reverse=True))
         if not self.dict_salary_name:
             self.dict_salary_name = {2022: 0}
@@ -653,10 +717,16 @@ class Statistics:
         #         self.dict_quantity,
         #         self.dict_salary_name,
         #         self.dict_quantity_name]
-        print(f'Динамика уровня зарплат по годам: {self.dict_salary}')
-        print(f'Динамика количества вакансий по годам: {self.dict_quantity}')
-        print(f'Динамика уровня зарплат по годам для выбранной профессии: {self.dict_salary_name}')
-        print(f'Динамика количества вакансий по годам для выбранной профессии: {self.dict_quantity_name}')
+
+        print(f'salary = {self.dict_salary}')
+        print(f'quanity =  {self.dict_quantity}')
+        print(f'salary_name =  {self.dict_salary_name}')
+        print(f'quanity_name =  {self.dict_quantity_name}')
+        print(f'city = {self.dict_salary_city}')
+        print(f'share = {self.dict_vacancy_share}')
+        print(f'city_name = {self.dict_salary_city_name}')
+        print(f'share_name = {self.dict_vacancy_share_name}')
+        print(f'name = "{name}"')
         # Report(name).generate_excel(
         #     [self.dict_salary, self.dict_quantity, self.dict_salary_name, self.dict_quantity_name,
         #      self.dict_salary_city, self.dict_vacancy_share])
@@ -665,7 +735,7 @@ class Statistics:
              self.dict_salary_city, self.dict_vacancy_share])
         Report(name).generate_pdf(
             [self.dict_salary, self.dict_quantity, self.dict_salary_name, self.dict_quantity_name,
-             self.dict_salary_city, self.dict_vacancy_share],
+             self.dict_salary_city_name, self.dict_vacancy_share_name],
             img_base64.replace('img ', 'img width="100%"'))
 
 
@@ -849,7 +919,7 @@ class Report:
                                        dict_salary_city=data[4],
                                        dict_vacancy_share=data[5],
                                        image=img_base64)
-        with open("D:/PycharmProjects/PythonElernUrfu/my_new_file.html", "w",
+        with open("F:/Makarov/my_new_file.html", "w",
                   encoding='utf-8-sig') as fh:
             fh.write(pdf_template)
         # config = pdfkit.configuration(wkhtmltopdf=r'F:\wkhtmltopdf\bin\wkhtmltopdf.exe')
@@ -866,7 +936,7 @@ def main():
     # name = input('Введите название файла: ')
     name = "vacancies_dif_currencies.csv"
     # name_vacancy = input('Введите название профессии: ')
-    name_vacancy = 'Devops'
+    name_vacancy = 'Специалист техподдержки'
     vacanciesDataSet = DataSet(name)
     if os.stat(name).st_size == 0:
         print("Пустой файл")
@@ -896,8 +966,9 @@ def main():
             stat.salaryStat(name_vacancy)
         else:
             print('IllegalArgument')
-    print(time.time() - start)
-    print('Hello world')
+    #print(time.time() - start)
+
+
 
 if __name__ == "__main__":
     main()
