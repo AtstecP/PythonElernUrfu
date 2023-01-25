@@ -64,6 +64,54 @@ currency_to_rub = {
     "UZS": 0.0055,
 }
 
+vacancies_name = {'Аналитик': ['analytic', 'аналитик', 'analyst', 'аналітик'],
+                  '1С-разработчик': ['1с разработчик', '1c разработчик', '1с', '1c', '1 c', '1 с'],
+                  'Руководитель ИТ-проектов': ['team lead', 'тимлид', 'тим лид', 'teamlead', 'lead', 'руководит',
+                                               'директор', 'leader', 'director', 'начальник', 'лидер',
+                                               'управляющий проект', 'керівник', 'chief', 'начальник it'],
+                  'Специалист техподдержки': ['техподдержка', 'тех поддержка', 'technical support engineer',
+                                              'поддержка', 'support', 'підтримки'],
+                  'Системный администратор': ['system admin', 'сисадмин', 'сис админ', 'системный админ',
+                                              'cистемный админ', 'администратор систем', 'системний адміністратор'],
+                  'UX/UI дизайнер': ['design', 'ux', 'ui', 'дизайн', 'иллюстратор'],
+                  'Менеджер IT-проекта': ['project manager', 'менеджер проект', 'менеджер it проект',
+                                          'менеджер ит проект', 'менеджер интернет проект', 'проджект менеджер',
+                                          'проект менеджер', 'проектный менеджер', 'менеджер по проект',
+                                          'менеджер по сопровождению проект', 'управление проект',
+                                          'управлению проект',
+                                          'project менедж', 'администратор проект', 'менеджер проектів',
+                                          'менеджер it продукт', 'менеджер it product'],
+                  'Тестировщик (QA-инженер)': ['qa', 'test', 'тест', 'quality assurance'],
+                  'Инженер-программис': ['engineer', 'инженер программист', 'інженер', 'it инженер',
+                                         'инженер разработчик'],
+                  'Frontend-программист ': ['frontend', 'фронтенд', 'вёрстка', 'верстка', 'верста', 'front end',
+                                            'angular', 'html', 'css', 'react', 'vue'],
+                  'Специалист по информационной безопасности': ['безопасность', 'защита',
+                                                                'information security specialist',
+                                                                'information security', 'фахівець служби безпеки',
+                                                                'cyber security'],
+                  'ERP-специалист': ['erp', 'enterprise resource planning', 'abap', 'crm', 'help desk', 'helpdesk',
+                                     'service desk', 'servicedesk', 'bi', 'sap'],
+                  'Backend-программист ': ['backend', 'бэкэнд', 'бэкенд', 'бекенд', 'бекэнд', 'back end', 'бэк энд',
+                                           'бэк енд', 'django', 'flask', 'laravel', 'yii', 'symfony'],
+                  'Java-программист': ['java', 'ява', 'джава'],
+                  'Администратор баз данных ': ['баз данных', 'оператор баз данных', 'базы данных', 'oracle',
+                                                'mysql',
+                                                'data base', 'database', 'dba', 'bd', 'бд', 'базами данны'],
+                  'Devops-инженер ': ['devops', 'development operations'], 'PHP-программист': ['php', 'пхп', 'рнр'],
+                  'Web-разработчик ': ['web develop', 'веб разработчик', 'web разработчик', 'web programmer',
+                                       'web программист', 'веб программист', 'битрикс разработчик',
+                                       'bitrix разработчик', 'drupal разработчик', 'cms разработчик',
+                                       'wordpress разработчик', 'wp разработчик', 'joomla разработчик',
+                                       'drupal developer', 'cms developer', 'wordpress developer', 'wp developer',
+                                       'joomla developer'], 'Python-программист': ['python', 'питон', 'пайтон'],
+                  'C/C++ программист': ['c\+\+', 'с\+\+'],
+                  'Android-разработчик ': ['android', 'андроид', 'andorid', 'andoroid', 'andriod', 'andrind',
+                                           'xamarin'],
+                  'Разработчик игр (GameDev)': ['game', 'unity', 'игр', 'unreal'],
+                  'Fullstack-программист': ['fullstack', 'фулстак', 'фуллтак', 'фуллстэк', 'фулстэк', 'full stack'],
+                  'IOS-разработчик ': ['ios'], 'C# программист': ['c#', 'c sharp', 'шарп', 'с#']}
+
 
 class DataSet:
     """
@@ -561,10 +609,8 @@ class Statistics:
             name(str): название вакансии
         """
 
-        chk_pat = '(?:{})'.format('|'.join(
-            ['техподдержка', 'тех поддержка', 'technical support engineer', 'поддержка', 'support', 'підтримки']))
-
-
+        # chk_pat = '(?:{})'.format('|'.join(['техподдержка', 'тех поддержка', 'technical support engineer', 'поддержка', 'support', 'підтримки']))
+        chk_pat = '(?:{})'.format('|'.join(vacancies_name[name]))
         for vacancy in self.dataset.getvacancies():
             if not self.dict_salary.__contains__(vacancy.published_at.year):
                 self.dict_salary[vacancy.published_at.year] = vacancy.salary.salary_average * currency_to_rub[
@@ -585,16 +631,6 @@ class Statistics:
                 self.dict_vacancy_share[vacancy.area_name] += 1
 
             if re.search(chk_pat, vacancy.name.lower(), flags=re.I):
-            #if name in vacancy.name.lower():
-                # if not self.dict_salary_city.__contains__(vacancy.area_name):
-                #     self.dict_salary_city[vacancy.area_name] = vacancy.salary.salary_average * currency_to_rub[
-                #         vacancy.salary.salary_currency]
-                #     self.dict_vacancy_share[vacancy.area_name] = 1
-                # else:
-                #     self.dict_salary_city[vacancy.area_name] += vacancy.salary.salary_average * currency_to_rub[
-                #         vacancy.salary.salary_currency]
-                #     self.dict_vacancy_share[vacancy.area_name] += 1
-
                 if not self.dict_salary_city_name.__contains__(vacancy.area_name):
                     self.dict_salary_city_name[vacancy.area_name] = vacancy.salary.salary_average * currency_to_rub[
                         vacancy.salary.salary_currency]
@@ -612,12 +648,6 @@ class Statistics:
                     self.dict_salary_name[vacancy.published_at.year] += vacancy.salary.salary_average * currency_to_rub[
                         vacancy.salary.salary_currency]
                     self.dict_quantity_name[vacancy.published_at.year] += 1
-
-        # for key in self.dict_salary.keys():
-        #     if not self.dict_salary_name.__contains__(key):
-        #         self.dict_salary_name[key] = 0
-        #         self.dict_quantity_name[key] = 0
-
     def __sort_dict(self):
         """
         Сортирует словари с вакансиями
@@ -629,8 +659,7 @@ class Statistics:
             except Exception:
                 self.dict_salary_name[item] = 0
                 self.dict_quantity_name[item] = 0
-                print(f' vacancie not exist in {item}')  # защита от деления на ноль
-
+                #print(f' vacancie not exist in {item}')  # защита от деления на ноль
 
         for item in self.dict_salary_city.keys():
             self.dict_salary_city[item] = math.trunc(self.dict_salary_city[item] / self.dict_vacancy_share[item])
@@ -646,9 +675,9 @@ class Statistics:
         self.dict_vacancy_share = dict(
             sorted(self.dict_vacancy_share.items(), key=lambda item: item[1], reverse=True))
 
-
         for item in self.dict_salary_city_name.keys():
-            self.dict_salary_city_name[item] = math.trunc(self.dict_salary_city_name[item] / self.dict_vacancy_share_name[item])
+            self.dict_salary_city_name[item] = math.trunc(
+                self.dict_salary_city_name[item] / self.dict_vacancy_share_name[item])
 
         lenght = sum(self.dict_vacancy_share_name.values())
 
@@ -661,7 +690,8 @@ class Statistics:
         self.dict_vacancy_share_name = dict(
             sorted(self.dict_vacancy_share_name.items(), key=lambda item: item[1], reverse=True))
         x = {}
-        self.dict_salary_city_name = dict(sorted(self.dict_salary_city_name.items(), key=lambda item: item[1], reverse=True))
+        self.dict_salary_city_name = dict(
+            sorted(self.dict_salary_city_name.items(), key=lambda item: item[1], reverse=True))
         for i, key in enumerate(self.dict_salary_city_name.keys()):
             if i == 10 or self.dict_salary_city_name[key] == 0:
                 break
@@ -676,38 +706,29 @@ class Statistics:
         # print(f'Доля вакансий по городам (в порядке убывания): {x}')
         self.dict_vacancy_share_name = x
 
-
-
-
         self.dict_salary_city = dict(sorted(self.dict_salary_city.items(), key=lambda item: item[1], reverse=True))
         if not self.dict_salary_name:
             self.dict_salary_name = {2022: 0}
         if not self.dict_quantity_name:
             self.dict_quantity_name = {2022: 0}
-        # print(f'Динамика уровня зарплат по годам: {dict_salary}')
-        # print(f'Динамика количества вакансий по годам: {dict_quantity}')
-        # print(f'Динамика уровня зарплат по годам для выбранной профессии: {dict_salary_name}')
-        # print(f'Динамика количества вакансий по годам для выбранной профессии: {dict_quantity_name}')
         x = {}
         for i, key in enumerate(self.dict_salary_city.keys()):
             if i == 10 or self.dict_salary_city[key] == 0:
                 break
             x[key] = self.dict_salary_city[key]
-        # print(f'Уровень зарплат по городам (в порядке убывания): {x}')
         self.dict_salary_city = x
         x = {}
         for i, key in enumerate(self.dict_vacancy_share.keys()):
             if i == 10 or self.dict_vacancy_share[key] == 0:
                 break
             x[key] = self.dict_vacancy_share[key]
-        # print(f'Доля вакансий по городам (в порядке убывания): {x}')
         self.dict_vacancy_share = x
         self.dict_salary_name = dict(sorted(self.dict_salary_name.items(), key=lambda item: item[0]))
         self.dict_quantity_name = dict(sorted(self.dict_quantity_name.items(), key=lambda item: item[0]))
 
     def salaryStat(self, name):
         """
-        Собирает статистику и выводит ее через пдф, png,xlsx, return
+        Собирает статистику и выводит ее через пдф, png,xlsx, текстом в терминал
         Args:
             name(str): название вакансии
         """
@@ -717,26 +738,33 @@ class Statistics:
         #         self.dict_quantity,
         #         self.dict_salary_name,
         #         self.dict_quantity_name]
-
-        print(f'salary = {self.dict_salary}')
-        print(f'quanity =  {self.dict_quantity}')
-        print(f'salary_name =  {self.dict_salary_name}')
-        print(f'quanity_name =  {self.dict_quantity_name}')
-        print(f'city = {self.dict_salary_city}')
-        print(f'share = {self.dict_vacancy_share}')
-        print(f'city_name = {self.dict_salary_city_name}')
-        print(f'share_name = {self.dict_vacancy_share_name}')
-        print(f'name = "{name}"')
+        #
+        # print(f'salary = {self.dict_salary}')
+        # print(f'quanity =  {self.dict_quantity}')
+        # print(f'salary_name =  {self.dict_salary_name}')
+        # print(f'quanity_name =  {self.dict_quantity_name}')
+        # print(f'city = {self.dict_salary_city}')
+        # print(f'share = {self.dict_vacancy_share}')
+        # print(f'city_name = {self.dict_salary_city_name}')
+        # print(f'share_name = {self.dict_vacancy_share_name}')
+        # print(f'name = "{name}"')
+        print(f"'{name}':" +
+              "{'salary':" +
+              f'{self.dict_salary_name},' +
+              "'city':" + f'{self.dict_salary_city_name},' + '},'
+              )
         # Report(name).generate_excel(
         #     [self.dict_salary, self.dict_quantity, self.dict_salary_name, self.dict_quantity_name,
         #      self.dict_salary_city, self.dict_vacancy_share])
-        img_base64 = Report(name).generate_image(
-            [self.dict_salary, self.dict_quantity, self.dict_salary_name, self.dict_quantity_name,
-             self.dict_salary_city, self.dict_vacancy_share])
-        Report(name).generate_pdf(
-            [self.dict_salary, self.dict_quantity, self.dict_salary_name, self.dict_quantity_name,
-             self.dict_salary_city_name, self.dict_vacancy_share_name],
-            img_base64.replace('img ', 'img width="100%"'))
+        #
+        # img_base64 = Report(name).generate_image(
+        #     [self.dict_salary, self.dict_quantity, self.dict_salary_name, self.dict_quantity_name,
+        #      self.dict_salary_city, self.dict_vacancy_share])
+        #
+        # Report(name).generate_pdf(
+        #     [self.dict_salary, self.dict_quantity, self.dict_salary_name, self.dict_quantity_name,
+        #      self.dict_salary_city_name, self.dict_vacancy_share_name],
+        #     img_base64.replace('img ', 'img width="100%"'))
 
 
 class Report:
@@ -931,43 +959,40 @@ def main():
     Выполняется при запуске программы
     Ведет диалог с пользователем и вызывает методы для работы с данными
     """
-    start = time.time()
-
-    # name = input('Введите название файла: ')
     name = "vacancies_dif_currencies.csv"
-    # name_vacancy = input('Введите название профессии: ')
-    name_vacancy = 'Специалист техподдержки'
-    vacanciesDataSet = DataSet(name)
-    if os.stat(name).st_size == 0:
-        print("Пустой файл")
-    elif len(vacanciesDataSet.getvacancies()) == 0:
-        print("Нет данных")
-    else:
-        # x = input("Введи 1 для вывода таблицы в консоль или 2 для создани PDF\n")
-        x = '2'
-        if x == '1':
-            parameters = input('Введите параметр фильтрации: ')
-            sort_info = [input('Введите параметр сортировки: '), input('Обратный порядок сортировки (Да / Нет): ')]
-            num = input('Введите диапазон вывода: ')
-            name_colomun = input('Введите требуемые столбцы: ')
-            num = num.split(' ')
-            name_colomun = name_colomun.split(', ')
-            if not InputConnect.check_paramtrs(parameters) or not InputConnect.check_sortparam(sort_info):
-                return
-            vacanciesDataSet.setvacancies(
-                InputConnect.data_filter(vacanciesDataSet.getvacancies(), parameters, sort_info))
-            if vacanciesDataSet.getvacancies():
-                table = InputConnect.create_table(vacanciesDataSet.getvacancies())
-                print(InputConnect.cut_table(table, num, name_colomun))
-            else:
-                print('Ничего не найдено')
-        elif x == '2':
-            stat = Statistics(vacanciesDataSet)
-            stat.salaryStat(name_vacancy)
-        else:
-            print('IllegalArgument')
-    #print(time.time() - start)
 
+    vacanciesDataSet = DataSet(name)
+    print('data = {')
+    for name_vacancy in vacancies_name.keys():
+        if os.stat(name).st_size == 0:
+            print("Пустой файл")
+        elif len(vacanciesDataSet.getvacancies()) == 0:
+            print("Нет данных")
+        else:
+            # x = input("Введи 1 для вывода таблицы в консоль или 2 для создани PDF\n")
+            x = '2'
+            if x == '1':
+                parameters = input('Введите параметр фильтрации: ')
+                sort_info = [input('Введите параметр сортировки: '), input('Обратный порядок сортировки (Да / Нет): ')]
+                num = input('Введите диапазон вывода: ')
+                name_colomun = input('Введите требуемые столбцы: ')
+                num = num.split(' ')
+                name_colomun = name_colomun.split(', ')
+                if not InputConnect.check_paramtrs(parameters) or not InputConnect.check_sortparam(sort_info):
+                    return
+                vacanciesDataSet.setvacancies(
+                    InputConnect.data_filter(vacanciesDataSet.getvacancies(), parameters, sort_info))
+                if vacanciesDataSet.getvacancies():
+                    table = InputConnect.create_table(vacanciesDataSet.getvacancies())
+                    print(InputConnect.cut_table(table, num, name_colomun))
+                else:
+                    print('Ничего не найдено')
+            elif x == '2':
+                stat = Statistics(vacanciesDataSet)
+                stat.salaryStat(name_vacancy)
+            else:
+                print('IllegalArgument')
+    print('}')
 
 
 if __name__ == "__main__":
