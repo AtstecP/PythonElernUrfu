@@ -64,7 +64,8 @@ currency_to_rub = {
     "UZS": 0.0055,
 }
 
-vacancies_name = {'Аналитик': ['analytic', 'аналитик', 'analyst', 'аналітик'],
+vacancies_name = {'Backend-программист ': ['backend', 'бэкэнд', 'бэкенд', 'бекенд', 'бекэнд', 'back end', 'бэк энд',
+                                           'бэк енд', 'django', 'flask', 'laravel', 'yii', 'symfony'],'Аналитик': ['analytic', 'аналитик', 'analyst', 'аналітик'],
                   '1С-разработчик': ['1с разработчик', '1c разработчик', '1с', '1c', '1 c', '1 с'],
                   'Руководитель ИТ-проектов': ['team lead', 'тимлид', 'тим лид', 'teamlead', 'lead', 'руководит',
                                                'директор', 'leader', 'director', 'начальник', 'лидер',
@@ -110,7 +111,8 @@ vacancies_name = {'Аналитик': ['analytic', 'аналитик', 'analyst'
                                            'xamarin'],
                   'Разработчик игр (GameDev)': ['game', 'unity', 'игр', 'unreal'],
                   'Fullstack-программист': ['fullstack', 'фулстак', 'фуллтак', 'фуллстэк', 'фулстэк', 'full stack'],
-                  'IOS-разработчик ': ['ios'], 'C# программист': ['c#', 'c sharp', 'шарп', 'с#']}
+                  'IOS-разработчик ': ['ios'], 'C# программист': ['c#', 'c sharp', 'шарп', 'с#']
+                  }
 
 
 class DataSet:
@@ -757,14 +759,14 @@ class Statistics:
         #     [self.dict_salary, self.dict_quantity, self.dict_salary_name, self.dict_quantity_name,
         #      self.dict_salary_city, self.dict_vacancy_share])
         #
-        # img_base64 = Report(name).generate_image(
-        #     [self.dict_salary, self.dict_quantity, self.dict_salary_name, self.dict_quantity_name,
-        #      self.dict_salary_city, self.dict_vacancy_share])
-        #
-        # Report(name).generate_pdf(
-        #     [self.dict_salary, self.dict_quantity, self.dict_salary_name, self.dict_quantity_name,
-        #      self.dict_salary_city_name, self.dict_vacancy_share_name],
-        #     img_base64.replace('img ', 'img width="100%"'))
+        img_base64 = Report(name).generate_image(
+            [self.dict_salary, self.dict_quantity, self.dict_salary_name, self.dict_quantity_name,
+             self.dict_salary_city, self.dict_vacancy_share])
+
+        Report(name).generate_pdf(
+            [self.dict_salary, self.dict_quantity, self.dict_salary_name, self.dict_quantity_name,
+             self.dict_salary_city_name, self.dict_vacancy_share_name],
+            img_base64.replace('img ', 'img width="100%"'))
 
 
 class Report:

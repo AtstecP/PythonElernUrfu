@@ -67,7 +67,7 @@ def clean_data(data):
 
     heading = data[0]
     chk_pat = '(?:{})'.format(
-        '|'.join(['backend', 'бэкэнд', 'бэкенд', 'бекенд', 'бекэнд', 'back end', 'бэк энд', 'бэк енд', 'django', 'flask', 'laravel', 'yii', 'symfony']))
+        '|'.join(['ios']))
 
     alfa = data
     alfa.pop(0)
